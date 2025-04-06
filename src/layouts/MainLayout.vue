@@ -3,8 +3,11 @@
     <header class="header">
       <h1>Books Management</h1>
       <nav>
-        <router-link to="/">Home</router-link> |
-        <router-link to="/books">Books</router-link>
+        <router-link to="/">Home</router-link> |  
+        <router-link to="/books">Books</router-link> |  
+        <router-link to="/authors">Authors</router-link> |
+        <router-link to="/readers">Readers</router-link> |  
+        <router-link to="/lendings">Lendings</router-link>
       </nav>
     </header>
     <main class="content">
