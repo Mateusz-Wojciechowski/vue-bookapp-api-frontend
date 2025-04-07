@@ -20,10 +20,6 @@
             </option>
           </select>
         </div>
-        <div>
-          <label>Date:</label>
-          <input type="date" v-model="lending.lendingDate" required />
-        </div>
         <button type="submit">{{ submitButtonText }}</button>
         <button type="button" v-if="isEditing" @click="cancelEdit">Cancel</button>
       </form>
