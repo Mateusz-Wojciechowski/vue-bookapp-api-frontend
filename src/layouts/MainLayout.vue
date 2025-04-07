@@ -14,7 +14,7 @@
       <slot></slot>
     </main>
     <footer class="footer">
-      <p>&copy; 2020 - ZPR PWr</p>
+      <p>&copy; 2025 - ZTW</p>
     </footer>
   </div>
 </template>
@@ -27,9 +27,12 @@ export default {
 
 <style scoped>
 .header {
-  background: #009435;
+  background: blue;
   color: white;
   padding: 1rem;
+}
+.header h1 {
+  color: white;
 }
 nav a {
   color: white;
@@ -44,5 +47,15 @@ nav a {
   text-align: center;
   padding: 0.5rem;
   margin-top: 2rem;
+}
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh
 }
 </style>
