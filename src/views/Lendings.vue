@@ -5,7 +5,6 @@
     <!-- Formularz do dodawania/edycji wypożyczenia -->
     <lending-form
       @lending-added="handleLendingAdded"
-      @lending-updated="handleLendingUpdated"
       :edit-lending="editLending"
       @cancel-edit="cancelEdit"
     />
@@ -123,27 +122,6 @@ export default {
       } catch (error) {
         console.error('Error adding lending:', error);
         this.error = error.message || 'Wystąpił błąd podczas dodawania wypożyczenia';
-      }
-    },
-    async handleLendingUpdated(lending) {
-      try {
-        this.error = null
-        const response = await fetch(`/api/lendings/${lending.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(lending)
-        })
-        
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || `Error ${response.status}`)
-        }
-        
-        await this.fetchLendings()
-        this.editLending = null
-      } catch (error) {
-        console.error('Error updating lending:', error)
-        this.error = error.message || 'Wystąpił błąd podczas aktualizacji wypożyczenia'
       }
     },
     async handleDeleteLending(lendingId) {

@@ -17,7 +17,6 @@
             <td>{{ lending.reader?.name || '' }}</td>
             <td>{{ lending.lendingDate }}</td>
             <td class="action-buttons">
-              <button @click="$emit('edit-lending', lending)">Edit</button>
               <button @click="$emit('delete-lending', lending.id)">Return</button>
             </td>
           </tr>
