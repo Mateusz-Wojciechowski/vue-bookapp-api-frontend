@@ -12,7 +12,7 @@
           <tr v-for="author in authors" :key="author.id">
             <td>{{ author.id }}</td>
             <td>{{ author.name }}</td>
-            <td>
+            <td class="action-buttons">
               <button @click="$emit('edit-author', author)">Edit</button>
               <button @click="$emit('delete-author', author.id)">Delete</button>
             </td>
@@ -53,6 +53,10 @@
   </script>
   
   <style scoped>
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
   table {
     width: 100%;
     border-collapse: collapse;

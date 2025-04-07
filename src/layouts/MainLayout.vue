@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="layout">
     <header class="header">
       <h1>Books Management</h1>
       <nav>
@@ -47,6 +47,7 @@ nav a {
   text-align: center;
   padding: 0.5rem;
   margin-top: 2rem;
+  
 }
 main {
   flex: 1;
@@ -54,8 +55,11 @@ main {
   flex-direction: column;
 }
 body {
+  height: 100%
+}
+.layout {
   display: flex;
   flex-direction: column;
-  height: 100vh
+  min-height: 100vh;
 }
 </style>

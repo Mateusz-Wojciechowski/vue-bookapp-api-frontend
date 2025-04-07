@@ -16,7 +16,7 @@
             <td>{{ lending.book?.title || '' }}</td>
             <td>{{ lending.reader?.name || '' }}</td>
             <td>{{ lending.lendingDate }}</td>
-            <td>
+            <td class="action-buttons">
               <button @click="$emit('edit-lending', lending)">Edit</button>
               <button @click="$emit('delete-lending', lending.id)">Delete</button>
             </td>
@@ -39,6 +39,10 @@
   </script>
   
   <style scoped>
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
   table {
     width: 100%;
     border-collapse: collapse;

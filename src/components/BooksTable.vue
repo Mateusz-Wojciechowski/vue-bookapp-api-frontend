@@ -16,7 +16,7 @@
           <td>{{ book.title }}</td>
           <td>{{ book.pages }}</td>
           <td>{{ book.author ? book.author.name : '' }}</td>
-          <td>
+          <td class="action-buttons">
             <button @click="$emit('edit-book', book)">Edit</button>
             <button @click="$emit('delete-book', book.id)">Delete</button>
           </td>
@@ -57,6 +57,10 @@ export default {
 </script>
 
 <style scoped>
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
 table {
   width: 100%;
   border-collapse: collapse;

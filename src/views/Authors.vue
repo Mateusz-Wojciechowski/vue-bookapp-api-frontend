@@ -15,7 +15,7 @@
     </div>
     
     <div v-else-if="authors.length === 0" class="no-data-message">
-      Brak autorów do wyświetlenia
+      No authors to display
     </div>
     
     <!-- Tabela z autorami wraz z paginacją -->
@@ -171,6 +171,7 @@ export default {
   border: 1px solid red;
   border-radius: 4px;
   background-color: #ffeeee;
+  text-align: center;
 }
 
 .no-data-message {

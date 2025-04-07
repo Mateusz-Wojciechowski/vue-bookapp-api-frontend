@@ -12,7 +12,7 @@
           <tr v-for="reader in readers" :key="reader.id">
             <td>{{ reader.id }}</td>
             <td>{{ reader.name }}</td>
-            <td>
+            <td class="action-buttons">
               <button @click="$emit('edit-reader', reader)">Edit</button>
               <button @click="$emit('delete-reader', reader.id)">Delete</button>
             </td>
@@ -35,6 +35,10 @@
   </script>
   
   <style scoped>
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
   table {
     width: 100%;
     border-collapse: collapse;
