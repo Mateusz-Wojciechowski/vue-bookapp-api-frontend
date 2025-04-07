@@ -103,9 +103,11 @@ export default {
         }
         
         const reader = await readerResponse.json();
+        console.log(reader)
+        console.log(lending.book.id)
         
         // Teraz wyślij żądanie wypożyczenia z obiektem Reader
-        const response = await fetch(`/api/lend?bookId=${lending.book.id}`, {
+        const response = await fetch(`/api/lendings/lend?bookId=${lending.book.id}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reader)
@@ -147,8 +149,8 @@ export default {
     async handleDeleteLending(lendingId) {
       try {
         this.error = null
-        const response = await fetch(`/api/lendings/${lendingId}`, { 
-          method: 'DELETE' 
+        const response = await fetch(`/api/lendings/return?lendingId=${lendingId}`, { 
+          method: 'POST' 
         })
         
         if (!response.ok) {
