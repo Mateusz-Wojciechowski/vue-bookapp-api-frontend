@@ -1,33 +1,21 @@
 <template>
   <div>
     <h2>Books Management</h2>
-    <!-- Formularz do dodawania/edycji książki -->
-    <book-form
-      @book-added="handleBookAdded"
-      @book-updated="handleBookUpdated"
-      :edit-book="editBook"
-      @cancel-edit="cancelEdit"
+    <book-form 
+      @book-added="handleBookAdded" 
+      @book-updated="handleBookUpdated" 
+      :edit-book="editBook" 
+      @cancel-edit="cancelEdit" 
     />
-    
-    <!-- Komunikaty o błędach lub braku danych -->
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
-    
-    <div v-else-if="books.length === 0" class="no-data-message">
-      No books to display
-    </div>
-    
-    <!-- Tabela z książkami wraz z paginacją -->
-    <books-table
-      v-else
-      :books="paginatedBooks"
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      @edit-book="prepareEditBook"
-      @delete-book="handleDeleteBook"
+    <books-table 
+      :books="booksContent" 
+      :current-page="currentPage" 
+      :total-pages="totalPages" 
+      @edit-book="prepareEditBook" 
+      @delete-book="handleDeleteBook" 
       @change-page="changePage"
     />
+    <div v-if="error" class="error-message">{{ error }}</div>
   </div>
 </template>
 
@@ -37,152 +25,119 @@ import BooksTable from '@/components/BooksTable.vue'
 
 export default {
   name: 'BooksView',
-  components: {
-    BookForm,
-    BooksTable
-  },
+  components: { BookForm, BooksTable },
   data() {
     return {
-      books: [],
-      currentPage: 1,
-      pageSize: 5, // Liczba książek wyświetlanych na jednej stronie
+      booksPage: null,  // obiekt Page zwracany przez backend
+      currentPage: 1,   // stronę traktujemy 1-indexowaną
+      pageSize: 5,
       editBook: null,
       error: null
     }
   },
   computed: {
-    totalPages() {
-      return Math.ceil(this.books.length / this.pageSize)
+    booksContent() {
+      return this.booksPage ? this.booksPage.content : [];
     },
-    paginatedBooks() {
-      const start = (this.currentPage - 1) * this.pageSize
-      return this.books.slice(start, start + this.pageSize)
+    totalPages() {
+      return this.booksPage ? this.booksPage.totalPages : 0;
     }
   },
   methods: {
     async fetchBooks() {
       try {
-        this.error = null
-        const response = await fetch('/api/books')
-        
-        if (response.status === 404) {
-          const errorData = await response.json()
-          this.error = errorData.message || 'Nie znaleziono zasobów (404)'
-          this.books = []
-          return
-        }
-        
+        this.error = null;
+        const response = await fetch(`/api/books?page=${this.currentPage - 1}&size=${this.pageSize}`);
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`)
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-        
-        const data = await response.json()
-        console.log('Fetched books:', data)
-        this.books = data
+        this.booksPage = await response.json();
+        console.log('Books page:', this.booksPage);
+    // Wyświetl ilość rekordów dla bieżącej strony:
+        console.log('Liczba rekordów na stronie:', this.booksPage.content.length);
+    // Wyświetl całkowitą liczbę stron:
+        console.log('Total pages:', this.booksPage.totalPages);
       } catch (error) {
-        console.error('Error fetching books:', error)
-        this.error = error.message || 'Wystąpił błąd podczas pobierania danych'
+        console.error('Error fetching books:', error);
+        this.error = error.message || 'Error fetching books';
       }
     },
     async handleBookAdded(newBook) {
       try {
-        this.error = null
+        this.error = null;
         const response = await fetch('/api/books', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newBook)
-        })
-        
+        });
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || `Error ${response.status}`)
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Error ${response.status}`);
         }
-        
-        await this.fetchBooks() // odświeżamy całą listę po dodaniu
-        this.currentPage = 1 // powrót do pierwszej strony
+        this.currentPage = 1;
+        await this.fetchBooks();
       } catch (error) {
-        console.error('Error adding book:', error)
-        this.error = error.message || 'Wystąpił błąd podczas dodawania książki'
+        console.error('Error adding book:', error);
+        this.error = error.message || 'Error adding book';
       }
     },
     prepareEditBook(book) {
-      this.editBook = { ...book }
+      this.editBook = { ...book };
     },
     async handleBookUpdated(updatedBook) {
       try {
-        this.error = null
+        this.error = null;
         const response = await fetch(`/api/books/${updatedBook.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedBook)
-        })
-        
+        });
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || `Error ${response.status}`)
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Error ${response.status}`);
         }
-        
-        await this.fetchBooks() // odświeżamy listę po edycji
-        this.editBook = null
+        await this.fetchBooks();
+        this.editBook = null;
       } catch (error) {
-        console.error('Error updating book:', error)
-        this.error = error.message || 'Wystąpił błąd podczas aktualizacji książki'
+        console.error('Error updating book:', error);
+        this.error = error.message || 'Error updating book';
       }
     },
     async handleDeleteBook(bookId) {
       try {
-        this.error = null
+        this.error = null;
         const response = await fetch(`/api/books/${bookId}`, {
           method: 'DELETE'
-        })
-        
+        });
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || `Error ${response.status}`)
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Error ${response.status}`);
         }
-        
-        await this.fetchBooks() // odświeżamy listę po usunięciu
-        // Jeśli bieżąca strona przekracza liczbę stron, ustaw aktualną stronę na ostatnią
+        await this.fetchBooks();
         if (this.currentPage > this.totalPages) {
-          this.currentPage = this.totalPages || 1
+          this.currentPage = this.totalPages || 1;
         }
       } catch (error) {
-        console.error('Error deleting book:', error)
-        this.error = error.message || 'Wystąpił błąd podczas usuwania książki'
+        console.error('Error deleting book:', error);
+        this.error = error.message || 'Error deleting book';
       }
     },
-    changePage(page) {
-      this.currentPage = page
+    async changePage(page) {
+      this.currentPage = page;
+      await this.fetchBooks();
     },
     cancelEdit() {
-      this.editBook = null
+      this.editBook = null;
     }
   },
   mounted() {
-    this.fetchBooks()
+    this.fetchBooks();
   }
 }
 </script>
 
 <style scoped>
-/* Dodatkowe style, jeśli potrzebne */
 .error-message {
   color: red;
-  padding: 15px;
-  margin: 15px 0;
-  border: 1px solid red;
-  border-radius: 4px;
-  background-color: #ffeeee;
-  text-align: center;
-}
-
-.no-data-message {
-  padding: 15px;
-  margin: 15px 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f8f8f8;
-  text-align: center;
-  font-style: italic;
 }
 </style>

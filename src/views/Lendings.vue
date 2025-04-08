@@ -1,43 +1,23 @@
 <template>
   <div>
     <h2>Lendings Management</h2>
-    
-    <!-- Formularz do dodawania/edycji wypożyczenia -->
-    <lending-form
+    <lending-form 
       @lending-added="handleLendingAdded"
       :edit-lending="editLending"
       @cancel-edit="cancelEdit"
     />
-    
-    <!-- Komunikaty o błędach lub braku danych -->
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
-    
-    <div v-else-if="lendings.length === 0" class="no-data-message">
+    <div v-if="error" class="error-message">{{ error }}</div>
+    <div v-else-if="!lendingsPage || lendingsPage.content.length === 0" class="no-data-message">
       No lendings to display
     </div>
-    
-    <!-- Tabela z wypożyczeniami -->
-    <lendings-table
+    <lendings-table 
       v-else
-      :lendings="paginatedLendings"
-      @edit-lending="prepareEditLending"
+      :lendings="lendingsPage.content"
+      :current-page="currentPage"
+      :total-pages="totalPages"
       @delete-lending="handleDeleteLending"
+      @change-page="changePage"
     />
-    
-    <!-- Paginacja -->
-    <div v-if="lendings.length > 0" class="pagination">
-      <button
-        v-for="page in totalPages"
-        :key="page"
-        @click="changePage(page)"
-        :disabled="page === currentPage"
-        class="page-button"
-      >
-        {{ page }}
-      </button>
-    </div>
   </div>
 </template>
 
@@ -50,126 +30,81 @@ export default {
   components: { LendingForm, LendingsTable },
   data() {
     return {
-      lendings: [],
-      editLending: null,
+      lendingsPage: null,
       currentPage: 1,
       pageSize: 5,
+      editLending: null,
       error: null
     }
   },
   computed: {
     totalPages() {
-      return Math.ceil(this.lendings.length / this.pageSize)
-    },
-    paginatedLendings() {
-      const start = (this.currentPage - 1) * this.pageSize
-      return this.lendings.slice(start, start + this.pageSize)
+      return this.lendingsPage ? this.lendingsPage.totalPages : 0;
     }
   },
   methods: {
     async fetchLendings() {
       try {
-        this.error = null
-        const response = await fetch('/api/lendings')
-        
-        if (response.status === 404) {
-          const errorData = await response.json()
-          this.error = errorData.message || 'Nie znaleziono zasobów (404)'
-          this.lendings = []
-          return
-        }
-        
+        this.error = null;
+        const response = await fetch(`/api/lendings?page=${this.currentPage - 1}&size=${this.pageSize}`);
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`)
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-        
-        const data = await response.json()
-        this.lendings = data
+        this.lendingsPage = await response.json();
       } catch (error) {
-        console.error('Error fetching lendings:', error)
-        this.error = error.message || 'Wystąpił błąd podczas pobierania danych'
+        console.error('Error fetching lendings:', error);
+        this.error = error.message || 'Error fetching lendings';
       }
     },
-    // Modified handleLendingAdded method for LendingsView.vue
-
     async handleLendingAdded(lending) {
       try {
         this.error = null;
-        
-        // First fetch the reader by ID
-        const readerResponse = await fetch(`/api/readers/${lending.reader.id}`);
-        
-        if (readerResponse.status === 404) {
-          const errorData = await readerResponse.json();
-          alert(errorData.message || 'Reader not found');
-          return;
-        }
-        
-        if (!readerResponse.ok) {
-          throw new Error(`Error fetching reader: ${readerResponse.status}`);
-        }
-        
-        const reader = await readerResponse.json();
-        
-        // Then send the lending request
+        // Przyjmujemy, że payload dla wypożyczenia jest przygotowany po stronie LendingForm
         const response = await fetch(`/api/lendings/lend?bookId=${lending.book.id}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reader)
+          body: JSON.stringify(lending.reader)
         });
-        
-        if (response.status === 404) {
-          const errorData = await response.json();
-          alert(errorData.message || 'Book not found');
-          return;
-        }
-        
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || `Error ${response.status}`);
         }
-        
-        await this.fetchLendings();
         this.currentPage = 1;
+        await this.fetchLendings();
       } catch (error) {
         console.error('Error adding lending:', error);
-        alert(error.message || 'Error adding lending');
-        this.error = error.message || 'Wystąpił błąd podczas dodawania wypożyczenia';
+        this.error = error.message || 'Error adding lending';
       }
     },
     async handleDeleteLending(lendingId) {
       try {
-        this.error = null
+        this.error = null;
         const response = await fetch(`/api/lendings/return?lendingId=${lendingId}`, { 
           method: 'POST' 
-        })
-        
+        });
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || `Error ${response.status}`)
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Error ${response.status}`);
         }
-        
-        await this.fetchLendings()
+        await this.fetchLendings();
         if (this.currentPage > this.totalPages) {
-          this.currentPage = this.totalPages || 1
+          this.currentPage = this.totalPages || 1;
         }
       } catch (error) {
-        console.error('Error deleting lending:', error)
-        this.error = error.message || 'Wystąpił błąd podczas usuwania wypożyczenia'
+        console.error('Error deleting lending:', error);
+        this.error = error.message || 'Error deleting lending';
       }
     },
-    prepareEditLending(lending) {
-      this.editLending = { ...lending }
+    async changePage(page) {
+      this.currentPage = page;
+      await this.fetchLendings();
     },
     cancelEdit() {
-      this.editLending = null
-    },
-    changePage(page) {
-      this.currentPage = page
+      this.editLending = null;
     }
   },
   mounted() {
-    this.fetchLendings()
+    this.fetchLendings();
   }
 }
 </script>
@@ -182,8 +117,8 @@ export default {
   border: 1px solid red;
   border-radius: 4px;
   background-color: #ffeeee;
+  text-align: center;
 }
-
 .no-data-message {
   padding: 15px;
   margin: 15px 0;
@@ -193,18 +128,15 @@ export default {
   text-align: center;
   font-style: italic;
 }
-
 .pagination {
   margin-top: 20px;
   text-align: center;
 }
-
 .page-button {
   margin: 0 5px;
   padding: 5px 10px;
   cursor: pointer;
 }
-
 .page-button[disabled] {
   background-color: #eee;
   cursor: not-allowed;

@@ -27,8 +27,8 @@
       <button 
         v-for="page in totalPages" 
         :key="page" 
-        :class="{ active: page === currentPage }"
         @click="$emit('change-page', page)"
+        :class="{ active: page === currentPage }"
       >
         {{ page }}
       </button>
@@ -57,10 +57,6 @@ export default {
 </script>
 
 <style scoped>
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
 table {
   width: 100%;
   border-collapse: collapse;
@@ -69,6 +65,10 @@ table {
 th, td {
   border: 1px solid #ddd;
   padding: 0.5rem;
+}
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 .pagination button {
   margin-right: 0.25rem;
