@@ -48,7 +48,12 @@ export default {
         this.error = null;
         const response = await fetch(`/api/lendings?page=${this.currentPage - 1}&size=${this.pageSize}`);
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
+          const errorData = await response.json();
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         this.lendingsPage = await response.json();
       } catch (error) {
@@ -58,8 +63,19 @@ export default {
     },
     async handleLendingAdded(lending) {
       try {
+        const readerCheckResponse = await fetch(`/api/readers/${lending.reader.id}`);
+
+        if (readerCheckResponse.status === 404) {
+          alert('Reader not found');
+          return;
+        }
+
+        if (!readerCheckResponse.ok) {
+          const errorData = await readerCheckResponse.json();
+          throw new Error(errorData.message || `Error ${readerCheckResponse.status}`);
+        }
         this.error = null;
-        // Przyjmujemy, że payload dla wypożyczenia jest przygotowany po stronie LendingForm
+
         const response = await fetch(`/api/lendings/lend?bookId=${lending.book.id}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -67,7 +83,11 @@ export default {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `Error ${response.status}`);
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         this.currentPage = 1;
         await this.fetchLendings();

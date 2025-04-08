@@ -7,7 +7,12 @@
       :edit-book="editBook" 
       @cancel-edit="cancelEdit" 
     />
+    <div v-if="error" class="error-message">{{ error }}</div>
+    <div v-else-if="!booksPage || booksPage.content.length === 0" class="no-data-message">
+      No books to display
+    </div>
     <books-table 
+      v-else
       :books="booksContent" 
       :current-page="currentPage" 
       :total-pages="totalPages" 
@@ -15,7 +20,6 @@
       @delete-book="handleDeleteBook" 
       @change-page="changePage"
     />
-    <div v-if="error" class="error-message">{{ error }}</div>
   </div>
 </template>
 
@@ -28,8 +32,8 @@ export default {
   components: { BookForm, BooksTable },
   data() {
     return {
-      booksPage: null,  // obiekt Page zwracany przez backend
-      currentPage: 1,   // stronę traktujemy 1-indexowaną
+      booksPage: null,
+      currentPage: 1,
       pageSize: 5,
       editBook: null,
       error: null
@@ -49,13 +53,18 @@ export default {
         this.error = null;
         const response = await fetch(`/api/books?page=${this.currentPage - 1}&size=${this.pageSize}`);
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
+          const errorData = await response.json();
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         this.booksPage = await response.json();
         console.log('Books page:', this.booksPage);
-    // Wyświetl ilość rekordów dla bieżącej strony:
+
         console.log('Liczba rekordów na stronie:', this.booksPage.content.length);
-    // Wyświetl całkowitą liczbę stron:
+
         console.log('Total pages:', this.booksPage.totalPages);
       } catch (error) {
         console.error('Error fetching books:', error);
@@ -111,7 +120,11 @@ export default {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `Error ${response.status}`);
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         await this.fetchBooks();
         if (this.currentPage > this.totalPages) {
@@ -139,5 +152,20 @@ export default {
 <style scoped>
 .error-message {
   color: red;
+  padding: 15px;
+  margin: 15px 0;
+  border: 1px solid red;
+  border-radius: 4px;
+  background-color: #ffeeee;
+  text-align: center;
+}
+.no-data-message {
+  padding: 15px;
+  margin: 15px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  text-align: center;
+  font-style: italic;
 }
 </style>

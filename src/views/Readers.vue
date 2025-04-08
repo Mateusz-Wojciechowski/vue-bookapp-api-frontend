@@ -50,7 +50,12 @@ export default {
         this.error = null;
         const response = await fetch(`/api/readers?page=${this.currentPage - 1}&size=${this.pageSize}`);
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
+          const errorData = await response.json();
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         this.readersPage = await response.json();
       } catch (error) {
@@ -68,7 +73,11 @@ export default {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `Error ${response.status}`);
+          if (errorData.message != "Database connection error") {
+            alert(errorData.message)
+          }else{
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }
         }
         this.currentPage = 1;
         await this.fetchReaders();

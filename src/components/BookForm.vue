@@ -101,7 +101,6 @@ export default {
         alert("Please select an author");
         return;
       }
-      // Tworzymy payload do wysłania do backendu, wysyłając obiekt author z kluczem id
       const payload = {
         id: this.book.id,
         title: this.book.title,

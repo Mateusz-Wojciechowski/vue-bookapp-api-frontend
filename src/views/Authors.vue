@@ -50,12 +50,17 @@ export default {
         this.error = null;
         const response = await fetch(`/api/authors?page=${this.currentPage - 1}&size=${this.pageSize}`);
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
+          const errorData = await response.json();
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         this.authorsPage = await response.json();
       } catch (error) {
         console.error('Error fetching authors:', error);
-        this.error = error.message || 'Error fetching authors';
+        this.error = error.message
       }
     },
     async handleAuthorAdded(newAuthor) {
@@ -68,7 +73,11 @@ export default {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `Error ${response.status}`);
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         this.currentPage = 1;
         await this.fetchAuthors();
@@ -104,7 +113,11 @@ export default {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `Error ${response.status}`);
+          if (errorData.message === "Database connection error") {
+            throw new Error(errorData.message || `Error ${response.status}`);
+          }else{
+            alert(errorData.message)
+          }
         }
         await this.fetchAuthors();
         if (this.currentPage > this.totalPages) {
