@@ -81,7 +81,7 @@ export default {
       fetch('/api/authors')
         .then(response => response.json())
         .then(data => {
-          this.authors = data;
+          this.authors = data.content;
           console.log('Fetched authors:', data);
         })
         .catch(error => {
