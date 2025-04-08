@@ -90,27 +90,39 @@ export default {
         this.error = error.message || 'Wystąpił błąd podczas pobierania danych'
       }
     },
+    // Modified handleLendingAdded method for LendingsView.vue
+
     async handleLendingAdded(lending) {
       try {
-        this.error = null
+        this.error = null;
         
-        // Najpierw pobierz obiekt Reader na podstawie ID
+        // First fetch the reader by ID
         const readerResponse = await fetch(`/api/readers/${lending.reader.id}`);
+        
+        if (readerResponse.status === 404) {
+          const errorData = await readerResponse.json();
+          alert(errorData.message || 'Reader not found');
+          return;
+        }
         
         if (!readerResponse.ok) {
           throw new Error(`Error fetching reader: ${readerResponse.status}`);
         }
         
         const reader = await readerResponse.json();
-        console.log(reader)
-        console.log(lending.book.id)
         
-        // Teraz wyślij żądanie wypożyczenia z obiektem Reader
+        // Then send the lending request
         const response = await fetch(`/api/lendings/lend?bookId=${lending.book.id}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reader)
         });
+        
+        if (response.status === 404) {
+          const errorData = await response.json();
+          alert(errorData.message || 'Book not found');
+          return;
+        }
         
         if (!response.ok) {
           const errorData = await response.json();
@@ -121,6 +133,7 @@ export default {
         this.currentPage = 1;
       } catch (error) {
         console.error('Error adding lending:', error);
+        alert(error.message || 'Error adding lending');
         this.error = error.message || 'Wystąpił błąd podczas dodawania wypożyczenia';
       }
     },
